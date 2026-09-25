@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tandeo Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root { --ink:#0f2230; --paper:#f3efe6; --water:#1f7a8c; --low:#c8553d; --line:#0f223022; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font-family:"Bricolage Grotesque", system-ui, sans-serif; }
+  header { padding:28px 32px 8px; }
+  h1 { font-size:clamp(2rem,5vw,3.4rem); margin:0; letter-spacing:-.02em; }
+  header p { margin:.3rem 0 0; max-width:60ch; opacity:.75; }
+  main { display:grid; grid-template-columns:minmax(280px,360px) 1fr; gap:24px; padding:24px 32px 40px; }
+  @media (max-width:820px){ main{ grid-template-columns:1fr; } }
+  .panel { border:1.5px solid var(--ink); background:#fffdf8; padding:20px; }
+  label { display:block; font-size:.85rem; margin:.7rem 0 .2rem; }
+  input { width:100%; padding:8px; font:inherit; border:1px solid var(--line); background:white; }
+  button { margin-top:1rem; width:100%; padding:10px; font:inherit; font-weight:700;
+           background:var(--ink); color:var(--paper); border:0; cursor:pointer; }
+  .tank { position:relative; height:180px; border:2px solid var(--ink); border-top:0; margin:18px 0 10px; overflow:hidden; }
+  .fill { position:absolute; bottom:0; left:0; right:0; background:var(--water); transition:height .6s ease; }
+  .fill.low { background:var(--low); }
+  .days { font-family:"JetBrains Mono", monospace; font-size:2.6rem; font-weight:600; }
+  .advice { margin-top:.4rem; }
+  #map { height:340px; border:1.5px solid var(--ink); }
+  .cut { border-bottom:1px solid var(--line); padding:12px 0; }
+  .cut b { font-size:1.05rem; }
+  .meta { font-family:"JetBrains Mono", monospace; font-size:.8rem; opacity:.7; }
+  .kind { display:inline-block; padding:1px 6px; border:1px solid currentColor; font-size:.75rem; margin-right:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tandeo Radar</h1>
+  <p>Los avisos de corte de agua convertidos en datos abiertos, y cuántos días te alcanza lo que tienes en tu cisterna.</p>
+</header>
+<main>
+  <section class="panel">
+    <label for="cap">Capacidad de cisterna o tinaco (L)</label>
+    <input id="cap" type="number" value="1100">
+    <label for="lvl">Nivel actual (%)</label>
+    <input id="lvl" type="number" value="50" min="0" max="100">
+    <label for="ppl">Personas en casa</label>
+    <input id="ppl" type="number" value="4" min="1">
+    <label for="col">Tu colonia</label>
+    <input id="col" placeholder="p. ej. Ajusco">
+    <button id="calc">Calcular autonomía</button>
+    <div class="tank"><div class="fill" id="fill" style="height:50%"></div></div>
+    <div class="days" id="days">—</div>
+    <div class="advice" id="advice">Captura tus datos para estimar cuántos días de agua tienes.</div>
+  </section>
+  <section>
+    <div id="map"></div>
+    <div id="cuts" class="panel" style="margin-top:16px"></div>
+  </section>
+</main>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([19.36, -99.13], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  { attribution: '© OpenStreetMap' }).addTo(map);
+const fmt = d => d ? new Date(d).toLocaleString('es-MX', { dateStyle:'medium', timeStyle:'short' }) : '¿?';
+
+async function loadEvents() {
+  await fetch('/refresh', { method:'POST' });
+  const ev = await (await fetch('/events')).json();
+  document.getElementById('cuts').innerHTML = ev.length ? ev.map(e => `
+    <div class="cut"><span class="kind">${e.kind}</span><b>${e.colonias.join(', ') || 'Colonias no especificadas'}</b>
+    <div>${e.alcaldia} · ${fmt(e.start)} → ${fmt(e.end)}</div>
+    <div class="meta">${e.reason || ''} · confianza ${e.confidence} · ${e.source_url}</div></div>`).join('')
+    : 'Sin cortes detectados.';
+  const gj = await (await fetch('/events.geojson')).json();
+  L.geoJSON(gj, { onEachFeature: (f, l) =>
+    l.bindPopup(`<b>${f.properties.colonias.join(', ')}</b><br>${fmt(f.properties.start)} → ${fmt(f.properties.end)}`) }).addTo(map);
+}
+
+document.getElementById('calc').onclick = async () => {
+  const body = { tank_capacity_l:+cap.value, current_level_pct:+lvl.value, people:+ppl.value };
+  const q = col.value ? `?colonia=${encodeURIComponent(col.value)}` : '';
+  const r = await (await fetch('/autonomy' + q, { method:'POST',
+    headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) })).json();
+  const f = document.getElementById('fill');
+  f.style.height = lvl.value + '%';
+  f.classList.toggle('low', r.covers_next_cut === false || r.autonomy_days < 1.5);
+  days.textContent = r.autonomy_days + ' días';
+  advice.textContent = r.advice;
+};
+loadEvents();
+</script>
+</body>
+</html>

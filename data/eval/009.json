@@ -1,0 +1,15 @@
+[
+ {
+  "alcaldia": "Azcapotzalco",
+  "colonias": [
+   "Presidente Madero",
+   "Miguel Hidalgo",
+   "San Juan Tlihuaca",
+   "Tezozomoc"
+  ],
+  "start": null,
+  "end": "2026-06-30T23:59:59-06:00",
+  "kind": "baja_presion",
+  "reason": "Reparación de la bomba del Pozo Presidente Madero"
+ }
+]

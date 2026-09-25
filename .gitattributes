@@ -1,0 +1,7 @@
+# Shell scripts must stay LF: autocrlf=true was rewriting them to CRLF, which
+# breaks execution outside Git Bash.
+*.sh text eol=lf
+
+# Keep Python and docs LF too, so diffs and heredoc matching stay predictable.
+*.py text eol=lf
+*.md text eol=lf

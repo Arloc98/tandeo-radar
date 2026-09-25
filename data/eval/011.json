@@ -1,0 +1,15 @@
+[
+ {
+  "alcaldia": "Benito Juárez",
+  "colonias": [
+   "Del Valle",
+   "Narvarte",
+   "Nápoles",
+   "Mixcoac"
+  ],
+  "start": null,
+  "end": "2026-01-14T23:59:59-06:00",
+  "kind": "suspension",
+  "reason": "Reparación de una fuga en la red"
+ }
+]

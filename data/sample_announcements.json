@@ -1,0 +1,14 @@
+[
+  {
+    "url": "synthetic://demo-1",
+    "title": "[SINTÉTICO] Aviso de suspensión por mantenimiento",
+    "published": "2026-09-22",
+    "content": "Texto de ejemplo para demo offline, no es un aviso real. Por trabajos de mantenimiento en la red primaria se suspenderá el suministro de agua el jueves 24 de septiembre de 08:00 a 20:00 horas en las colonias Pedregal de Santo Domingo y Ajusco, alcaldía Coyoacán."
+  },
+  {
+    "url": "synthetic://demo-2",
+    "title": "[SINTÉTICO] Baja presión programada",
+    "published": "2026-09-22",
+    "content": "Texto de ejemplo para demo offline, no es un aviso real. Se prevé baja presión en el servicio del 23 al 25 de septiembre en las colonias San Miguel Teotongo y Santa Martha Acatitla, alcaldía Iztapalapa, debido a reparación de una fuga."
+  }
+]

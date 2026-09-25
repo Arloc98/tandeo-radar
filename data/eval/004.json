@@ -1,0 +1,29 @@
+[
+ {
+  "alcaldia": "Azcapotzalco",
+  "colonias": [
+   "Presidente Madero",
+   "Miguel Hidalgo",
+   "San Juan Tlihuaca",
+   "Tezozomoc"
+  ],
+  "start": null,
+  "end": "2026-06-30T23:59:59-06:00",
+  "kind": "baja_presion",
+  "reason": "Reparación de la bomba del Pozo Presidente Madero"
+ },
+ {
+  "alcaldia": "Tláhuac",
+  "colonias": [
+   "San Andrés Mixquic",
+   "San Nicolás Tetelco",
+   "San Juan Ixtayopan",
+   "San Pedro Tláhuac",
+   "San Francisco Tlaltenco"
+  ],
+  "start": null,
+  "end": "2026-06-26T17:00:00-06:00",
+  "kind": "baja_presion",
+  "reason": "Sustitución del equipo de bombeo del Pozo Tecomitl 20"
+ }
+]

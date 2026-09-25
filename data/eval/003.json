@@ -1,0 +1,30 @@
+[
+ {
+  "alcaldia": "La Magdalena Contreras",
+  "colonias": [
+   "San Jerónimo Aculco-Lídice",
+   "Barrio San Francisco",
+   "San Francisco",
+   "La Cruz",
+   "La Concepción",
+   "Plazuela del Pedregal",
+   "San Bartolo Ameyalco",
+   "Cuauhtémoc",
+   "Lomas Quebradas",
+   "Heroes de Padierna",
+   "Los Padres",
+   "El Tanque",
+   "Las Cruces",
+   "San Bernabé Ocotepec",
+   "Atacaxco",
+   "El Rosal",
+   "Vista Hermosa",
+   "Las Palmas",
+   "Barros Sierra"
+  ],
+  "start": null,
+  "end": null,
+  "kind": "baja_presion",
+  "reason": "Cuarta reducción del caudal del Sistema Cutzamala durante el estiaje"
+ }
+]

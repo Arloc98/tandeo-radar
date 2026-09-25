@@ -1,0 +1,13 @@
+[
+ {
+  "alcaldia": "Azcapotzalco",
+  "colonias": [
+   "San Miguel Amantla",
+   "Plenitud"
+  ],
+  "start": null,
+  "end": "2025-12-24T23:59:59-06:00",
+  "kind": "suspension",
+  "reason": "Trabajos de rehabilitación en el pozo San Miguel Amantla"
+ }
+]

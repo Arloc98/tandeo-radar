@@ -1,0 +1,63 @@
+[
+ {
+  "alcaldia": "Álvaro Obregón",
+  "colonias": [
+   "Año de Juárez",
+   "La Planta",
+   "El Edén",
+   "Unidad Habitacional Allepetlali",
+   "Unidad Santa Cruz Meyehualco"
+  ],
+  "start": null,
+  "end": null,
+  "kind": "tandeo",
+  "reason": "Programa de agua por tandeo durante noviembre"
+ },
+ {
+  "alcaldia": "Coyoacán",
+  "colonias": [
+   "Adolfo Ruíz Cortines",
+   "Pedregal de Santa Úrsula",
+   "Pedregal de Santo Domingo",
+   "Ajusco"
+  ],
+  "start": null,
+  "end": null,
+  "kind": "tandeo",
+  "reason": "Programa de agua por tandeo durante noviembre"
+ },
+ {
+  "alcaldia": "Gustavo A. Madero",
+  "colonias": [
+   "Ampliación Arboledas Cuautepec",
+   "Ampliación Pradera",
+   "La Casilla",
+   "La Pastora",
+   "La Providencia",
+   "Ampliación Malacates",
+   "Cuautepec Centro",
+   "Luis Donaldo Colosio M"
+  ],
+  "start": null,
+  "end": null,
+  "kind": "tandeo",
+  "reason": "Programa de agua por tandeo durante noviembre"
+ },
+ {
+  "alcaldia": "Tláhuac",
+  "colonias": [
+   "Ampliación José López Portillo",
+   "Selene",
+   "El Rosario",
+   "Jaime Torres Bodet",
+   "Peña Alta",
+   "Tierra Blanca",
+   "La Habana",
+   "Santa Cecilia"
+  ],
+  "start": null,
+  "end": null,
+  "kind": "tandeo",
+  "reason": "Programa de agua por tandeo durante noviembre"
+ }
+]
