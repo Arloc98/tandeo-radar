@@ -179,6 +179,24 @@
   }
   .leaflet-popup-content{margin:var(--s-sm); font-size:12px; line-height:16px;}
 
+  .livebar{
+    display:flex; align-items:center; justify-content:space-between; gap:var(--s-md);
+    flex-wrap:wrap; margin-bottom:var(--s-md); padding:var(--s-md);
+    background:var(--elevated); border:1px solid var(--hairline); border-radius:var(--r-md);
+  }
+  .live-note{margin:var(--s-xxs) 0 0; color:var(--body); font-size:12px; line-height:16px; max-width:56ch;}
+  .btn-live{
+    flex:0 0 auto; min-height:36px; padding:0 16px;
+    background:var(--primary); color:var(--on-primary);
+    border:1px solid var(--primary); border-radius:var(--r-sm);
+    font:500 14px/20px Geist,Arial,sans-serif; cursor:pointer;
+  }
+  .btn-live:hover:not(:disabled){opacity:.88;}
+  .btn-live:disabled{opacity:.5; cursor:progress;}
+  .live-actions{display:flex; gap:var(--s-xs); flex-wrap:wrap;}
+  .btn-live.ghost{background:var(--elevated); color:var(--ink); border-color:var(--hairline);}
+  .btn-live.ghost:hover:not(:disabled){border-color:var(--mute);}
+
   .filters{margin-bottom:var(--s-sm);}
   .filters .lbl{margin:0 0 var(--s-xs);}
   .chips{display:flex; flex-wrap:wrap; gap:var(--s-xs);}
@@ -299,6 +317,19 @@
     <section aria-labelledby="mapa-h">
       <h2 id="mapa-h" class="sr">Mapa de avisos</h2>
 
+      <div class="livebar" id="livebar" hidden>
+        <div>
+          <p class="eyebrow">Pipeline en vivo</p>
+          <p class="live-note" id="live-note">Hay un backend disponible: puedes ejecutar
+            Tavily &rarr; Nemotron &rarr; GeoJSON ahora mismo.</p>
+        </div>
+        <div class="live-actions">
+          <button class="btn-live ghost" id="restore" type="button" hidden>Volver al snapshot</button>
+          <button class="btn-live" id="live" type="button">Actualizar en vivo</button>
+        </div>
+      </div>
+      <p class="status err" id="live-error" hidden></p>
+
       <div class="filters" role="group" aria-labelledby="filtro-lbl">
         <p class="eyebrow lbl" id="filtro-lbl">Filtrar por alcald&iacute;a</p>
         <div class="chips" id="chips"></div>
@@ -326,7 +357,7 @@
 <footer class="site">
   <div class="shell">
     <p id="provenance"></p>
-    <p>Los eventos provienen del set de evaluaci&oacute;n del proyecto: avisos reales de prensa, con sus
+    <p id="nota-snapshot">Los eventos provienen del set de evaluaci&oacute;n del proyecto: avisos reales de prensa, con sus
       eventos etiquetados y verificados a mano. Son hist&oacute;ricos, no cortes vigentes. El pipeline en vivo
       (Tavily &rarr; Nemotron en Nebius Token Factory &rarr; GeoJSON) es el que produce este formato.</p>
     <p>Colonias geocodificadas con OpenStreetMap Nominatim. C&oacute;digo bajo licencia MIT.</p>
@@ -341,7 +372,7 @@
   var root = document.documentElement;
   var icon = document.getElementById("theme-icon");
   var TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-  var map = null, layer = null, EVENTS = [], GEO = null, FILTER = null;
+  var map = null, layer = null, EVENTS = [], FILTER = null, SNAPSHOT = null;
 
   var KIND = { suspension: "Suspensión", tandeo: "Tandeo", baja_presion: "Baja presión" };
   var COLOR = { suspension: "--error", tandeo: "--warning", baja_presion: "--link" };
@@ -414,9 +445,21 @@
         '</span><span class="k">' + esc(c[1]) + "</span></div>";
     }).join("");
     document.getElementById("provenance").innerHTML =
-      "Snapshot generado el " + esc(meta.generated_at) + " &middot; " +
+      (meta.live ? "Corrida en vivo del pipeline, " : "Snapshot generado el ") +
+      esc(meta.generated_at) + " &middot; " +
       esc(meta.colonias_geocoded) + " de " + esc(meta.colonias_total) +
       " colonias geocodificadas.";
+    // El pie explica el snapshot; en vivo esa nota ya no aplica.
+    var nota = document.getElementById("nota-snapshot");
+    if (nota) { nota.hidden = !!meta.live; }
+  }
+
+  // El snapshot trae el titular del aviso; el pipeline en vivo solo la URL.
+  function fuente(e) {
+    if (e.source_title) { return e.source_title; }
+    if (!e.source_url) { return "sin fuente"; }
+    try { return new URL(e.source_url).hostname.replace(/^www\./, ""); }
+    catch (err) { return e.source_url; }
   }
 
   // ---- filtro por alcaldia ------------------------------------------------
@@ -477,17 +520,44 @@
         '<p class="cols">' +
         (e.colonias.length ? esc(e.colonias.join(" · ")) : "Colonias no especificadas") +
         "</p><p class=\"meta\">" + esc(ventana(e)) + " &middot; " + esc(e.colonias.length) +
-        " colonias &middot; fuente: " + esc(e.source_title) + "</p></article>";
+        " colonias &middot; fuente: " + esc(fuente(e)) + "</p></article>";
     }).join("");
   }
 
+  // El snapshot trae points[] (una colonia = un punto); el pipeline en vivo trae un solo
+  // lat/lon por evento. Se normalizan aqui para que el mapa tenga un unico camino.
+  function pointsOf(e) {
+    if (e.points && e.points.length) { return e.points; }
+    if (typeof e.lat === "number" && typeof e.lon === "number") {
+      return [{ colonia: e.colonias[0] || e.alcaldia, lat: e.lat, lon: e.lon }];
+    }
+    return [];
+  }
+
+  function featuresFrom(events) {
+    var out = [];
+    events.forEach(function (e) {
+      pointsOf(e).forEach(function (p) {
+        out.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [p.lon, p.lat] },
+          properties: {
+            alcaldia: e.alcaldia, colonia: p.colonia, kind: e.kind,
+            start: e.start, end: e.end, colonias: e.colonias
+          }
+        });
+      });
+    });
+    return out;
+  }
+
   function renderMap() {
-    if (!map || !GEO || !GEO.features) { return; }
+    if (!map) { return; }
     if (layer) { layer.remove(); layer = null; }
 
-    var feats = GEO.features.filter(function (f) {
-      return matches(f.properties.alcaldia);
-    });
+    var feats = featuresFrom(EVENTS.filter(function (e) {
+      return matches(e.alcaldia);
+    }));
     if (!feats.length) { return; }
 
     layer = L.geoJSON({ type: "FeatureCollection", features: feats }, {
@@ -515,33 +585,129 @@
     document.getElementById("lista-sub").textContent = "No se pudieron cargar los avisos.";
   }
 
-  // Modo estatico: el snapshot vive junto al HTML. Para el refresco en vivo basta
-  // apuntar API_BASE a un backend cuyo /refresh devuelva los eventos en el cuerpo.
-  var API_BASE = null;
-
   function load() {
-    var base = API_BASE || "data/";
     Promise.all([
-      fetch(base + "events.json").then(function (r) {
+      fetch("data/events.json").then(function (r) {
         if (!r.ok) { throw new Error("HTTP " + r.status); }
         return r.json();
       }),
-      fetch(base + "events.geojson").then(function (r) {
-        return r.ok ? r.json() : { features: [] };
-      }),
-      fetch(base + "snapshot.json").then(function (r) { return r.ok ? r.json() : null; })
+      fetch("data/snapshot.json").then(function (r) { return r.ok ? r.json() : null; })
     ]).then(function (res) {
       EVENTS = res[0] || [];
-      GEO = res[1] || { type: "FeatureCollection", features: [] };
-      if (res[2]) { renderStats(res[2]); }
+      SNAPSHOT = { events: EVENTS, meta: res[1] };
+      if (res[1]) { renderStats(res[1]); }
       buildChips();
       renderList();
       renderMap();
       recalc();
+      probeBackend();
     }).catch(function (err) {
       fail("No se pudieron cargar los datos (" + err.message + ").");
     });
   }
+
+  // ---- pipeline en vivo ---------------------------------------------------
+  // El despliegue estatico no lleva backend, asi que el boton solo aparece si hay uno.
+  // FastAPI publica /openapi.json; en Vercel estatico esa ruta no existe.
+  function probeBackend() {
+    fetch("openapi.json").then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (spec) {
+      if (spec && spec.paths && spec.paths["/refresh"]) {
+        document.getElementById("livebar").hidden = false;
+      }
+    }).catch(function () { /* sin backend: el boton se queda oculto */ });
+  }
+
+  function liveRefresh() {
+    var btn = document.getElementById("live");
+    var note = document.getElementById("live-note");
+    var err = document.getElementById("live-error");
+    var t0 = Date.now();
+
+    btn.disabled = true;
+    err.hidden = true;
+    note.textContent = "Buscando avisos con Tavily y extrayendo con Nemotron… " +
+      "puede tardar medio minuto.";
+
+    fetch("refresh", { method: "POST" }).then(function (r) {
+      if (!r.ok) { throw new Error("HTTP " + r.status); }
+      return r.json();
+    }).then(function (body) {
+      var secs = ((Date.now() - t0) / 1000).toFixed(0);
+      var items = body.items || [];
+
+      if (!items.length) {
+        note.textContent = "La corrida terminó en " + secs + " s sin eventos utilizables. " +
+          "Se conserva el snapshot en pantalla.";
+        if (body.errors && body.errors.length) {
+          err.hidden = false;
+          err.textContent = "El collector reportó " + body.errors.length +
+            " error(es); no es un día sin cortes, es una falla de recolección.";
+        }
+        btn.disabled = false;
+        return;
+      }
+
+      EVENTS = items;
+      FILTER = null;
+      renderStats({
+        generated_at: new Date().toLocaleString("es-MX"),
+        events: items.length,
+        alcaldias: items.map(function (e) { return e.alcaldia; }).filter(function (v, i, a) {
+          return a.indexOf(v) === i;
+        }),
+        colonias_total: items.reduce(function (n, e) { return n + e.colonias.length; }, 0),
+        colonias_geocoded: featuresFrom(items).length,
+        notices: items.map(function (e) { return e.source_url; }).filter(function (v, i, a) {
+          return a.indexOf(v) === i;
+        }).length,
+        live: true
+      });
+      buildChips();
+      renderList();
+      renderMap();
+      recalc();
+
+      note.textContent = "Corrida en vivo: " + items.length + " eventos en " + secs + " s · " +
+        (body.escalated || 0) + " escalados al tier de razonamiento · " +
+        (body.collector_discarded || 0) + " resultados descartados por el collector.";
+      document.getElementById("restore").hidden = false;
+
+      // Una corrida en vivo puede traer eventos sin colonias geocodificables; decirlo
+      // en vez de dejar un mapa vacio sin explicacion.
+      if (!featuresFrom(items).length) {
+        err.hidden = false;
+        err.textContent = "Ninguno de los eventos de esta corrida pudo ubicarse en el mapa: " +
+          "la geocodificación necesita nombres de colonia concretos. La lista sí los muestra.";
+      }
+      btn.disabled = false;
+    }).catch(function (e) {
+      err.hidden = false;
+      err.textContent = "El refresco en vivo falló (" + e.message +
+        "). El snapshot sigue en pantalla.";
+      note.textContent = "Hay un backend disponible: puedes ejecutar " +
+        "Tavily → Nemotron → GeoJSON ahora mismo.";
+      btn.disabled = false;
+    });
+  }
+
+  document.getElementById("live").addEventListener("click", liveRefresh);
+
+  document.getElementById("restore").addEventListener("click", function () {
+    if (!SNAPSHOT) { return; }
+    EVENTS = SNAPSHOT.events;
+    FILTER = null;
+    if (SNAPSHOT.meta) { renderStats(SNAPSHOT.meta); }
+    buildChips();
+    renderList();
+    renderMap();
+    recalc();
+    document.getElementById("live-error").hidden = true;
+    document.getElementById("restore").hidden = true;
+    document.getElementById("live-note").textContent =
+      "Hay un backend disponible: puedes ejecutar Tavily → Nemotron → GeoJSON ahora mismo.";
+  });
 
   // Misma formula que app/autonomy.py: A = V / Q_out.
   function num(id, dflt) {

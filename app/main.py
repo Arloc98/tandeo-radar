@@ -29,7 +29,8 @@ def refresh(geocode: bool = True) -> dict:
     if not config.NEBIUS_API_KEY:   # no LLM key yet: serve fixtures so the UI can be built
         raw = json.loads((WEB.parent / "data" / "sample_events.json").read_text(encoding="utf-8"))
         STATE["events"] = [TandeoEvent(**e) for e in raw]
-        return {"events": len(STATE["events"]), "errors": [], "mode": "fixtures"}
+        return {"events": len(STATE["events"]), "errors": [], "mode": "fixtures",
+                "items": [e.model_dump(mode="json") for e in STATE["events"]]}
     announcements: list[Announcement] = []
     try:
         collected = collector.collect()
@@ -73,6 +74,9 @@ def refresh(geocode: bool = True) -> dict:
         "escalated": escalated,
         "retried_still_empty": retried_still_empty,
         "errors": errors,
+        # Los eventos viajan en el cuerpo: en un despliegue sin estado compartido,
+        # un GET /events posterior puede caer en otra instancia y no verlos.
+        "items": [e.model_dump(mode="json") for e in events],
     }
 
 
