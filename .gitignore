@@ -6,3 +6,8 @@ data/cache/
 runs/
 .pytest_cache/
 .ruff_cache/
+
+# Tooling local de agentes, no forma parte del producto
+.agents/
+.claude/
+skills-lock.json

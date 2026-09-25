@@ -4,93 +4,606 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tandeo Radar</title>
+<meta name="description" content="Los avisos de corte de agua en la Ciudad de Mexico convertidos en datos estructurados y mapeables, con una estimacion de cuantos dias alcanza tu cisterna.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  :root { --ink:#0f2230; --paper:#f3efe6; --water:#1f7a8c; --low:#c8553d; --line:#0f223022; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--paper); color:var(--ink);
-         font-family:"Bricolage Grotesque", system-ui, sans-serif; }
-  header { padding:28px 32px 8px; }
-  h1 { font-size:clamp(2rem,5vw,3.4rem); margin:0; letter-spacing:-.02em; }
-  header p { margin:.3rem 0 0; max-width:60ch; opacity:.75; }
-  main { display:grid; grid-template-columns:minmax(280px,360px) 1fr; gap:24px; padding:24px 32px 40px; }
-  @media (max-width:820px){ main{ grid-template-columns:1fr; } }
-  .panel { border:1.5px solid var(--ink); background:#fffdf8; padding:20px; }
-  label { display:block; font-size:.85rem; margin:.7rem 0 .2rem; }
-  input { width:100%; padding:8px; font:inherit; border:1px solid var(--line); background:white; }
-  button { margin-top:1rem; width:100%; padding:10px; font:inherit; font-weight:700;
-           background:var(--ink); color:var(--paper); border:0; cursor:pointer; }
-  .tank { position:relative; height:180px; border:2px solid var(--ink); border-top:0; margin:18px 0 10px; overflow:hidden; }
-  .fill { position:absolute; bottom:0; left:0; right:0; background:var(--water); transition:height .6s ease; }
-  .fill.low { background:var(--low); }
-  .days { font-family:"JetBrains Mono", monospace; font-size:2.6rem; font-weight:600; }
-  .advice { margin-top:.4rem; }
-  #map { height:340px; border:1.5px solid var(--ink); }
-  .cut { border-bottom:1px solid var(--line); padding:12px 0; }
-  .cut b { font-size:1.05rem; }
-  .meta { font-family:"JetBrains Mono", monospace; font-size:.8rem; opacity:.7; }
-  .kind { display:inline-block; padding:1px 6px; border:1px solid currentColor; font-size:.75rem; margin-right:6px; }
+  :root{
+    --ink:#171717; --body:#4d4d4d; --mute:#8f8f8f; --faint:#a1a1a1;
+    --hairline:#ebebeb; --hairline-soft:#f2f2f2;
+    --canvas:#fafafa; --elevated:#ffffff;
+    --on-primary:#ffffff; --primary:#171717;
+    --link:#0070f3; --link-soft:#d3e5ff;
+    --error:#ee0000; --warning:#f5a623;
+    --shadow-1:0 1px 1px rgba(0,0,0,.04);
+    --shadow-2:0 2px 2px rgba(0,0,0,.04), 0 8px 16px -4px rgba(0,0,0,.08);
+    --r-sm:6px; --r-md:12px; --r-full:9999px;
+    --s-xxs:4px; --s-xs:8px; --s-sm:12px; --s-md:16px; --s-lg:24px; --s-xl:32px; --s-2xl:40px;
+  }
+  :root[data-theme="dark"]{
+    --ink:#ededed; --body:#a1a1a1; --mute:#8f8f8f; --faint:#6f6f6f;
+    --hairline:#2e2e2e; --hairline-soft:#242424;
+    --canvas:#0a0a0a; --elevated:#111111;
+    --on-primary:#0a0a0a; --primary:#ededed;
+    --link:#3291ff; --link-soft:#1f3a5f;
+    --error:#ff6166; --warning:#f7b955;
+    --shadow-1:0 1px 1px rgba(0,0,0,.4);
+    --shadow-2:0 2px 2px rgba(0,0,0,.4), 0 8px 16px -4px rgba(0,0,0,.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ink:#ededed; --body:#a1a1a1; --mute:#8f8f8f; --faint:#6f6f6f;
+      --hairline:#2e2e2e; --hairline-soft:#242424;
+      --canvas:#0a0a0a; --elevated:#111111;
+      --on-primary:#0a0a0a; --primary:#ededed;
+      --link:#3291ff; --link-soft:#1f3a5f;
+      --error:#ff6166; --warning:#f7b955;
+      --shadow-1:0 1px 1px rgba(0,0,0,.4);
+      --shadow-2:0 2px 2px rgba(0,0,0,.4), 0 8px 16px -4px rgba(0,0,0,.6);
+    }
+  }
+
+  *,*::before,*::after{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--canvas); color:var(--ink);
+    font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    font-size:14px; line-height:20px; letter-spacing:-.28px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .eyebrow{
+    font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px; line-height:16px; font-weight:500; letter-spacing:0;
+    text-transform:uppercase; color:var(--mute); margin:0;
+  }
+  a{color:var(--link); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+
+  :where(a,button,input,summary,[tabindex]):focus-visible{
+    outline:2px solid var(--link); outline-offset:2px; border-radius:var(--r-sm);
+  }
+  .skip{
+    position:absolute; left:-9999px; top:var(--s-xs);
+    background:var(--elevated); color:var(--ink); padding:var(--s-xs) var(--s-sm);
+    border:1px solid var(--hairline); border-radius:var(--r-sm); z-index:1000;
+  }
+  .skip:focus{left:var(--s-md);}
+
+  .shell{max-width:1200px; margin:0 auto; padding:0 var(--s-lg);}
+  @media (max-width:640px){ .shell{padding:0 var(--s-md);} }
+
+  header.site{border-bottom:1px solid var(--hairline); background:var(--canvas);}
+  .head-row{display:flex; align-items:flex-start; gap:var(--s-md); padding:var(--s-xl) 0 var(--s-lg);}
+  .head-text{flex:1 1 auto; min-width:0;}
+  h1{
+    font-size:48px; line-height:48px; font-weight:600; letter-spacing:-2.4px;
+    margin:var(--s-xs) 0 0; color:var(--ink);
+  }
+  @media (max-width:640px){ h1{font-size:32px; line-height:36px; letter-spacing:-1.28px;} }
+  .tagline{margin:var(--s-sm) 0 0; max-width:62ch; color:var(--body); font-size:16px; line-height:24px; letter-spacing:0;}
+
+  .icon-btn{
+    flex:0 0 auto; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center;
+    background:var(--elevated); color:var(--ink); border:1px solid var(--hairline);
+    border-radius:var(--r-full); cursor:pointer; font-size:16px; line-height:1; padding:0;
+  }
+  .icon-btn:hover{border-color:var(--mute);}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:var(--s-sm); padding:var(--s-lg) 0;}
+  @media (max-width:820px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stat{
+    background:var(--elevated); border:1px solid var(--hairline); border-radius:var(--r-md);
+    padding:var(--s-md); box-shadow:var(--shadow-1);
+  }
+  .stat .n{
+    font-family:"Geist Mono",ui-monospace,monospace; font-size:28px; line-height:34px;
+    font-weight:500; letter-spacing:-1px; color:var(--ink); display:block;
+  }
+  .stat .k{display:block; margin-top:var(--s-xxs); color:var(--mute); font-size:12px; line-height:16px;}
+
+  .grid{
+    display:grid; grid-template-columns:minmax(300px,360px) minmax(0,1fr);
+    gap:var(--s-lg); padding-bottom:var(--s-2xl); align-items:start;
+  }
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--elevated); border:1px solid var(--hairline);
+    border-radius:var(--r-md); padding:var(--s-lg);
+  }
+  .card h2{font-size:20px; line-height:28px; font-weight:600; letter-spacing:-.4px; margin:0;}
+  .card .hint{margin:var(--s-xs) 0 0; color:var(--mute); font-size:12px; line-height:16px;}
+
+  .field{margin-top:var(--s-md);}
+  label{display:block; font-size:14px; font-weight:500; line-height:20px; margin-bottom:var(--s-xxs); color:var(--ink);}
+  input[type=number]{
+    width:100%; min-height:36px; padding:var(--s-xs) var(--s-sm);
+    background:var(--elevated); color:var(--ink);
+    border:1px solid var(--hairline); border-radius:var(--r-sm);
+    font:400 14px/20px Geist,Arial,sans-serif;
+  }
+  input:hover{border-color:var(--mute);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:var(--s-sm);}
+
+  .btn{
+    width:100%; min-height:44px; margin-top:var(--s-md);
+    background:var(--primary); color:var(--on-primary);
+    border:1px solid var(--primary); border-radius:var(--r-sm);
+    font:500 14px/20px Geist,Arial,sans-serif; cursor:pointer;
+  }
+  .btn:hover{opacity:.88;}
+
+  .tank{
+    position:relative; height:132px; margin-top:var(--s-lg);
+    border:1px solid var(--hairline); border-radius:var(--r-sm);
+    background:var(--hairline-soft); overflow:hidden;
+  }
+  .tank .fill{
+    position:absolute; left:0; right:0; bottom:0; height:50%;
+    background:var(--link); opacity:.22; transition:height .45s ease;
+  }
+  .tank .fill.low{background:var(--error); opacity:.2;}
+  .tank .cap{position:absolute; left:0; right:0; border-top:1px dashed var(--mute); transition:bottom .45s ease;}
+  @media (prefers-reduced-motion:reduce){
+    .tank .fill,.tank .cap{transition:none;}
+  }
+
+  .verdict{margin-top:var(--s-md);}
+  .days{
+    font-family:"Geist Mono",ui-monospace,monospace; font-size:40px; line-height:44px;
+    font-weight:500; letter-spacing:-2px; color:var(--ink); margin:0;
+  }
+  .days .u{font-size:16px; letter-spacing:-.4px; color:var(--mute); margin-left:var(--s-xs);}
+  .advice{margin:var(--s-xs) 0 0; color:var(--body); line-height:20px;}
+  .advice.bad{color:var(--error);}
+  .ledger{margin-top:var(--s-md); padding-top:var(--s-md); border-top:1px solid var(--hairline); display:grid; gap:var(--s-xxs);}
+  .ledger div{display:flex; justify-content:space-between; gap:var(--s-sm); font-size:12px; line-height:16px;}
+  .ledger .l{color:var(--mute);}
+  .ledger .v{font-family:"Geist Mono",ui-monospace,monospace; color:var(--body);}
+
+  #map{height:420px; border:1px solid var(--hairline); border-radius:var(--r-md); background:var(--hairline-soft); z-index:0;}
+  @media (max-width:640px){ #map{height:320px;} }
+  .leaflet-container{background:var(--hairline-soft); font-family:Geist,Arial,sans-serif;}
+  /* El sistema es blanco y negro: los tiles de OSM se desaturan para no meter
+     un segundo sistema de color, y se invierten en oscuro. Sin llave de API. */
+  .leaflet-tile-pane{filter:grayscale(1) contrast(.9) brightness(1.06);}
+  :root[data-theme="dark"] .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.92) contrast(.9);}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.92) contrast(.9);}
+  }
+  .leaflet-popup-content-wrapper,.leaflet-popup-tip{
+    background:var(--elevated); color:var(--ink);
+    border:1px solid var(--hairline); border-radius:var(--r-sm); box-shadow:var(--shadow-2);
+  }
+  .leaflet-popup-content{margin:var(--s-sm); font-size:12px; line-height:16px;}
+
+  .filters{margin-bottom:var(--s-sm);}
+  .filters .lbl{margin:0 0 var(--s-xs);}
+  .chips{display:flex; flex-wrap:wrap; gap:var(--s-xs);}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px; min-height:32px;
+    padding:0 14px; background:var(--elevated); color:var(--body);
+    border:1px solid var(--hairline); border-radius:64px;
+    font:500 14px/20px Geist,Arial,sans-serif; cursor:pointer; white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--mute); color:var(--ink);}
+  .chip .c{
+    font-family:"Geist Mono",ui-monospace,monospace; font-size:12px; color:var(--faint);
+  }
+  .chip[aria-pressed="true"]{background:var(--primary); color:var(--on-primary); border-color:var(--primary);}
+  .chip[aria-pressed="true"] .c{color:var(--on-primary); opacity:.7;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:var(--s-md); margin-top:var(--s-sm);}
+  .legend span{display:inline-flex; align-items:center; gap:var(--s-xs); font-size:12px; color:var(--mute);}
+  .dot{width:8px; height:8px; border-radius:var(--r-full); flex:0 0 auto; display:inline-block;}
+  .dot.suspension{background:var(--error);}
+  .dot.tandeo{background:var(--warning);}
+  .dot.baja_presion{background:var(--link);}
+
+  .list{margin-top:var(--s-md);}
+  .cut{padding:var(--s-md) 0; border-top:1px solid var(--hairline);}
+  .cut-head{display:flex; align-items:center; gap:var(--s-xs); flex-wrap:wrap;}
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    border:1px solid var(--hairline); border-radius:var(--r-full);
+    padding:2px 8px; font-size:12px; line-height:16px; color:var(--body);
+  }
+  .cut b{font-size:14px; font-weight:600; color:var(--ink);}
+  .cut .cols{margin:var(--s-xxs) 0 0; color:var(--body); line-height:20px;}
+  .cut .meta{margin:var(--s-xxs) 0 0; color:var(--faint); font-size:12px; line-height:16px;}
+
+  .status{padding:var(--s-lg); border:1px dashed var(--hairline); border-radius:var(--r-md); color:var(--mute); text-align:center;}
+  .status.err{border-style:solid; border-color:var(--error); color:var(--error);}
+  .sr{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+
+  footer.site{border-top:1px solid var(--hairline); padding:var(--s-lg) 0 var(--s-2xl); color:var(--mute);}
+  footer.site p{margin:0 0 var(--s-xs); max-width:80ch; font-size:12px; line-height:18px;}
 </style>
 </head>
 <body>
-<header>
-  <h1>Tandeo Radar</h1>
-  <p>Los avisos de corte de agua convertidos en datos abiertos, y cuántos días te alcanza lo que tienes en tu cisterna.</p>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="site">
+  <div class="shell head-row">
+    <div class="head-text">
+      <p class="eyebrow">Tandeo &middot; Ciudad de M&eacute;xico</p>
+      <h1>Tandeo Radar</h1>
+      <p class="tagline">Los avisos de corte de agua no existen como datos: viven en boletines y notas sueltas.
+        Aqu&iacute; se vuelven estructurados, mapeables y consultables &mdash; y te dicen cu&aacute;ntos d&iacute;as aguanta tu cisterna.</p>
+    </div>
+    <button class="icon-btn" id="theme" type="button" aria-label="Cambiar entre tema claro y oscuro">
+      <span aria-hidden="true" id="theme-icon">&#9680;</span>
+    </button>
+  </div>
 </header>
-<main>
-  <section class="panel">
-    <label for="cap">Capacidad de cisterna o tinaco (L)</label>
-    <input id="cap" type="number" value="1100">
-    <label for="lvl">Nivel actual (%)</label>
-    <input id="lvl" type="number" value="50" min="0" max="100">
-    <label for="ppl">Personas en casa</label>
-    <input id="ppl" type="number" value="4" min="1">
-    <label for="col">Tu colonia</label>
-    <input id="col" placeholder="p. ej. Ajusco">
-    <button id="calc">Calcular autonomía</button>
-    <div class="tank"><div class="fill" id="fill" style="height:50%"></div></div>
-    <div class="days" id="days">—</div>
-    <div class="advice" id="advice">Captura tus datos para estimar cuántos días de agua tienes.</div>
+
+<main id="contenido" class="shell">
+
+  <section aria-labelledby="resumen-h">
+    <h2 id="resumen-h" class="sr">Resumen del snapshot</h2>
+    <div class="stats" id="stats"></div>
   </section>
-  <section>
-    <div id="map"></div>
-    <div id="cuts" class="panel" style="margin-top:16px"></div>
-  </section>
+
+  <div class="grid">
+
+    <section class="card" aria-labelledby="calc-h">
+      <h2 id="calc-h">Autonom&iacute;a de tu cisterna</h2>
+      <p class="hint">A = V / Q_out: el volumen que te queda entre tu consumo diario.</p>
+
+      <div class="field">
+        <label for="cap">Capacidad de cisterna o tinaco (L)</label>
+        <input id="cap" type="number" value="1100" min="1" step="50" inputmode="numeric">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="lvl">Nivel actual (%)</label>
+          <input id="lvl" type="number" value="50" min="0" max="100" step="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="ppl">Personas</label>
+          <input id="ppl" type="number" value="4" min="1" step="1" inputmode="numeric">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="use">Uso por persona (L/d&iacute;a)</label>
+          <input id="use" type="number" value="100" min="1" step="10" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="dur">Duraci&oacute;n del corte (d&iacute;as)</label>
+          <input id="dur" type="number" value="2" min="0" step="0.5" inputmode="decimal">
+        </div>
+      </div>
+
+      <button class="btn" id="calc" type="button">Calcular autonom&iacute;a</button>
+
+      <div class="tank" role="img" aria-label="Nivel actual de tu cisterna comparado con lo que exige el corte">
+        <div class="fill" id="fill"></div>
+        <div class="cap" id="capline" hidden></div>
+      </div>
+
+      <div class="verdict" aria-live="polite">
+        <p class="days" id="days">&mdash;<span class="u">d&iacute;as</span></p>
+        <p class="advice" id="advice">Captura tus datos para estimar cu&aacute;ntos d&iacute;as de agua tienes.</p>
+      </div>
+
+      <div class="ledger" id="ledger" hidden>
+        <div><span class="l">Volumen disponible</span><span class="v" id="l-vol">&mdash;</span></div>
+        <div><span class="l">Consumo diario</span><span class="v" id="l-dem">&mdash;</span></div>
+        <div><span class="l">Faltante ante el corte</span><span class="v" id="l-gap">&mdash;</span></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="mapa-h">
+      <h2 id="mapa-h" class="sr">Mapa de avisos</h2>
+
+      <div class="filters" role="group" aria-labelledby="filtro-lbl">
+        <p class="eyebrow lbl" id="filtro-lbl">Filtrar por alcald&iacute;a</p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div id="map"></div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot suspension"></i>Suspensi&oacute;n</span>
+        <span><i class="dot tandeo"></i>Tandeo</span>
+        <span><i class="dot baja_presion"></i>Baja presi&oacute;n</span>
+      </div>
+
+      <div class="card list" aria-labelledby="lista-h">
+        <h2 id="lista-h">Avisos estructurados</h2>
+        <p class="hint" id="lista-sub">Cargando&hellip;</p>
+        <div id="cuts" aria-busy="true">
+          <p class="status">Cargando avisos&hellip;</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
 </main>
+
+<footer class="site">
+  <div class="shell">
+    <p id="provenance"></p>
+    <p>Los eventos provienen del set de evaluaci&oacute;n del proyecto: avisos reales de prensa, con sus
+      eventos etiquetados y verificados a mano. Son hist&oacute;ricos, no cortes vigentes. El pipeline en vivo
+      (Tavily &rarr; Nemotron en Nebius Token Factory &rarr; GeoJSON) es el que produce este formato.</p>
+    <p>Colonias geocodificadas con OpenStreetMap Nominatim. C&oacute;digo bajo licencia MIT.</p>
+  </div>
+</footer>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const map = L.map('map').setView([19.36, -99.13], 11);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  { attribution: '© OpenStreetMap' }).addTo(map);
-const fmt = d => d ? new Date(d).toLocaleString('es-MX', { dateStyle:'medium', timeStyle:'short' }) : '¿?';
+(function () {
+  "use strict";
 
-async function loadEvents() {
-  await fetch('/refresh', { method:'POST' });
-  const ev = await (await fetch('/events')).json();
-  document.getElementById('cuts').innerHTML = ev.length ? ev.map(e => `
-    <div class="cut"><span class="kind">${e.kind}</span><b>${e.colonias.join(', ') || 'Colonias no especificadas'}</b>
-    <div>${e.alcaldia} · ${fmt(e.start)} → ${fmt(e.end)}</div>
-    <div class="meta">${e.reason || ''} · confianza ${e.confidence} · ${e.source_url}</div></div>`).join('')
-    : 'Sin cortes detectados.';
-  const gj = await (await fetch('/events.geojson')).json();
-  L.geoJSON(gj, { onEachFeature: (f, l) =>
-    l.bindPopup(`<b>${f.properties.colonias.join(', ')}</b><br>${fmt(f.properties.start)} → ${fmt(f.properties.end)}`) }).addTo(map);
-}
+  var root = document.documentElement;
+  var icon = document.getElementById("theme-icon");
+  var TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  var map = null, layer = null, EVENTS = [], GEO = null, FILTER = null;
 
-document.getElementById('calc').onclick = async () => {
-  const body = { tank_capacity_l:+cap.value, current_level_pct:+lvl.value, people:+ppl.value };
-  const q = col.value ? `?colonia=${encodeURIComponent(col.value)}` : '';
-  const r = await (await fetch('/autonomy' + q, { method:'POST',
-    headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body) })).json();
-  const f = document.getElementById('fill');
-  f.style.height = lvl.value + '%';
-  f.classList.toggle('low', r.covers_next_cut === false || r.autonomy_days < 1.5);
-  days.textContent = r.autonomy_days + ' días';
-  advice.textContent = r.advice;
-};
-loadEvents();
+  var KIND = { suspension: "Suspensión", tandeo: "Tandeo", baja_presion: "Baja presión" };
+  var COLOR = { suspension: "--error", tandeo: "--warning", baja_presion: "--link" };
+
+  function cssVar(n) {
+    return getComputedStyle(root).getPropertyValue(n).trim() || "#888";
+  }
+  function isDark() {
+    var t = root.getAttribute("data-theme");
+    if (t) { return t === "dark"; }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function restyleMarkers() {
+    if (!layer) { return; }
+    layer.eachLayer(function (l) {
+      var c = cssVar(COLOR[l.feature.properties.kind] || "--link");
+      l.setStyle({ color: c, fillColor: c });
+    });
+  }
+  function applyTheme(t) {
+    if (t) { root.setAttribute("data-theme", t); } else { root.removeAttribute("data-theme"); }
+    icon.innerHTML = isDark() ? "&#9681;" : "&#9680;";
+    restyleMarkers();
+  }
+
+  try { applyTheme(localStorage.getItem("tr-theme")); } catch (e) { applyTheme(null); }
+
+  document.getElementById("theme").addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    try { localStorage.setItem("tr-theme", next); } catch (e) {}
+    applyTheme(next);
+  });
+
+  if (window.L) {
+    map = L.map("map", { scrollWheelZoom: false }).setView([19.40, -99.13], 10);
+    L.tileLayer(TILES, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 18
+    }).addTo(map);
+  }
+
+  function esc(s) {
+    return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function fmtDate(v) {
+    if (!v) { return null; }
+    var d = new Date(v);
+    if (isNaN(d.getTime())) { return null; }
+    return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+  }
+  function ventana(e) {
+    var a = fmtDate(e.start), b = fmtDate(e.end);
+    if (a && b) { return a + " → " + b; }
+    if (b) { return "hasta " + b; }
+    if (a) { return "desde " + a; }
+    return "sin fechas en el aviso";
+  }
+
+  function renderStats(meta) {
+    var cells = [
+      [meta.events, "eventos extraídos"],
+      [meta.alcaldias ? meta.alcaldias.length : 0, "alcaldías"],
+      [meta.colonias_total, "colonias afectadas"],
+      [meta.notices, "avisos procesados"]
+    ];
+    document.getElementById("stats").innerHTML = cells.map(function (c) {
+      return '<div class="stat"><span class="n">' + esc(c[0]) +
+        '</span><span class="k">' + esc(c[1]) + "</span></div>";
+    }).join("");
+    document.getElementById("provenance").innerHTML =
+      "Snapshot generado el " + esc(meta.generated_at) + " &middot; " +
+      esc(meta.colonias_geocoded) + " de " + esc(meta.colonias_total) +
+      " colonias geocodificadas.";
+  }
+
+  // ---- filtro por alcaldia ------------------------------------------------
+  function matches(alcaldia) {
+    return FILTER === null || alcaldia === FILTER;
+  }
+
+  function buildChips() {
+    var counts = {};
+    EVENTS.forEach(function (e) {
+      counts[e.alcaldia] = (counts[e.alcaldia] || 0) + 1;
+    });
+    var names = Object.keys(counts).sort(function (a, b) {
+      return a.localeCompare(b, "es");
+    });
+    var rows = [[null, "Todas", EVENTS.length]].concat(names.map(function (n) {
+      return [n, n, counts[n]];
+    }));
+    var box = document.getElementById("chips");
+    box.innerHTML = rows.map(function (r) {
+      var on = FILTER === r[0];
+      return '<button type="button" class="chip" aria-pressed="' + on + '"' +
+        ' data-alcaldia="' + esc(r[0] === null ? "" : r[0]) + '">' +
+        esc(r[1]) + '<span class="c">' + esc(r[2]) + "</span></button>";
+    }).join("");
+
+    Array.prototype.forEach.call(box.querySelectorAll(".chip"), function (b) {
+      b.addEventListener("click", function () {
+        var v = b.getAttribute("data-alcaldia");
+        FILTER = v === "" ? null : v;
+        buildChips();
+        renderList();
+        renderMap();
+      });
+    });
+  }
+
+  function renderList() {
+    var box = document.getElementById("cuts");
+    box.setAttribute("aria-busy", "false");
+    var shown = EVENTS.filter(function (e) { return matches(e.alcaldia); });
+
+    document.getElementById("lista-sub").textContent = FILTER
+      ? shown.length + " de " + EVENTS.length + " eventos · " + FILTER
+      : EVENTS.length + " eventos, ordenados por alcaldía.";
+
+    if (!shown.length) {
+      box.innerHTML = '<p class="status">Sin avisos para este filtro.</p>';
+      return;
+    }
+    var ordered = shown.sort(function (a, b) {
+      return a.alcaldia.localeCompare(b.alcaldia, "es");
+    });
+    box.innerHTML = ordered.map(function (e) {
+      return '<article class="cut"><div class="cut-head">' +
+        '<span class="badge"><i class="dot ' + esc(e.kind) + '"></i>' +
+        esc(KIND[e.kind] || e.kind) + "</span><b>" + esc(e.alcaldia) + "</b></div>" +
+        '<p class="cols">' +
+        (e.colonias.length ? esc(e.colonias.join(" · ")) : "Colonias no especificadas") +
+        "</p><p class=\"meta\">" + esc(ventana(e)) + " &middot; " + esc(e.colonias.length) +
+        " colonias &middot; fuente: " + esc(e.source_title) + "</p></article>";
+    }).join("");
+  }
+
+  function renderMap() {
+    if (!map || !GEO || !GEO.features) { return; }
+    if (layer) { layer.remove(); layer = null; }
+
+    var feats = GEO.features.filter(function (f) {
+      return matches(f.properties.alcaldia);
+    });
+    if (!feats.length) { return; }
+
+    layer = L.geoJSON({ type: "FeatureCollection", features: feats }, {
+      pointToLayer: function (f, latlng) {
+        var c = cssVar(COLOR[f.properties.kind] || "--link");
+        return L.circleMarker(latlng, {
+          radius: 6, weight: 1.5, color: c, fillColor: c, fillOpacity: 0.35
+        });
+      },
+      onEachFeature: function (f, l) {
+        var p = f.properties;
+        l.bindPopup("<b>" + esc(p.colonia) + "</b><br>" + esc(p.alcaldia) + " &middot; " +
+          esc(KIND[p.kind] || p.kind) + "<br>" + esc(ventana(p)));
+        l.bindTooltip(p.colonia, { direction: "top" });
+      }
+    }).addTo(map);
+    // maxZoom evita que una alcaldia con colonias juntas salte a nivel de calle.
+    map.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 13 });
+  }
+
+  function fail(msg) {
+    var box = document.getElementById("cuts");
+    box.setAttribute("aria-busy", "false");
+    box.innerHTML = '<p class="status err">' + esc(msg) + "</p>";
+    document.getElementById("lista-sub").textContent = "No se pudieron cargar los avisos.";
+  }
+
+  // Modo estatico: el snapshot vive junto al HTML. Para el refresco en vivo basta
+  // apuntar API_BASE a un backend cuyo /refresh devuelva los eventos en el cuerpo.
+  var API_BASE = null;
+
+  function load() {
+    var base = API_BASE || "data/";
+    Promise.all([
+      fetch(base + "events.json").then(function (r) {
+        if (!r.ok) { throw new Error("HTTP " + r.status); }
+        return r.json();
+      }),
+      fetch(base + "events.geojson").then(function (r) {
+        return r.ok ? r.json() : { features: [] };
+      }),
+      fetch(base + "snapshot.json").then(function (r) { return r.ok ? r.json() : null; })
+    ]).then(function (res) {
+      EVENTS = res[0] || [];
+      GEO = res[1] || { type: "FeatureCollection", features: [] };
+      if (res[2]) { renderStats(res[2]); }
+      buildChips();
+      renderList();
+      renderMap();
+      recalc();
+    }).catch(function (err) {
+      fail("No se pudieron cargar los datos (" + err.message + ").");
+    });
+  }
+
+  // Misma formula que app/autonomy.py: A = V / Q_out.
+  function num(id, dflt) {
+    var v = parseFloat(document.getElementById(id).value);
+    return isFinite(v) ? v : dflt;
+  }
+  function recalc() {
+    var cap = Math.max(num("cap", 0), 0);
+    var pct = Math.min(Math.max(num("lvl", 0), 0), 100);
+    var ppl = Math.max(num("ppl", 1), 1);
+    var use = Math.max(num("use", 100), 1);
+    var dur = Math.max(num("dur", 0), 0);
+
+    var volume = cap * pct / 100;
+    var demand = ppl * use;
+    var days = demand > 0 ? volume / demand : 0;
+    var covers = days >= dur;
+
+    var fill = document.getElementById("fill");
+    fill.style.height = pct + "%";
+    fill.classList.toggle("low", !covers || days < 1.5);
+
+    var capline = document.getElementById("capline");
+    if (dur > 0 && cap > 0) {
+      capline.hidden = false;
+      capline.style.bottom = Math.min((dur * demand) / cap * 100, 100) + "%";
+    } else {
+      capline.hidden = true;
+    }
+
+    document.getElementById("days").innerHTML =
+      esc(days.toFixed(1)) + '<span class="u">días</span>';
+
+    var advice = document.getElementById("advice");
+    var gap = (dur - days) * demand;
+    if (dur <= 0) {
+      advice.className = "advice";
+      advice.textContent = days < 1.5
+        ? "Reserva baja: conviene llenar."
+        : "Reserva adecuada. Indica una duración de corte para comparar.";
+    } else if (covers) {
+      advice.className = "advice";
+      advice.textContent = "Tu reserva cubre un corte de " + dur + " días.";
+    } else {
+      advice.className = "advice bad";
+      advice.textContent = "Tu reserva se agota antes de que termine el corte. Faltan ~" +
+        Math.round(gap) + " L: llena antes o reduce consumo.";
+    }
+
+    document.getElementById("ledger").hidden = false;
+    document.getElementById("l-vol").textContent = Math.round(volume) + " L";
+    document.getElementById("l-dem").textContent = Math.round(demand) + " L/día";
+    document.getElementById("l-gap").textContent = (gap > 0 ? Math.round(gap) : 0) + " L";
+  }
+
+  document.getElementById("calc").addEventListener("click", recalc);
+  ["cap", "lvl", "ppl", "use", "dur"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", recalc);
+  });
+
+  load();
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,509 @@
+[
+  {
+    "id": "003-0",
+    "alcaldia": "La Magdalena Contreras",
+    "colonias": [
+      "San Jerónimo Aculco-Lídice",
+      "Barrio San Francisco",
+      "San Francisco",
+      "La Cruz",
+      "La Concepción",
+      "Plazuela del Pedregal",
+      "San Bartolo Ameyalco",
+      "Cuauhtémoc",
+      "Lomas Quebradas",
+      "Heroes de Padierna",
+      "Los Padres",
+      "El Tanque",
+      "Las Cruces",
+      "San Bernabé Ocotepec",
+      "Atacaxco",
+      "El Rosal",
+      "Vista Hermosa",
+      "Las Palmas",
+      "Barros Sierra"
+    ],
+    "start": null,
+    "end": null,
+    "kind": "baja_presion",
+    "reason": "Cuarta reducción del caudal del Sistema Cutzamala durante el estiaje",
+    "confidence": 1.0,
+    "source_title": "Chilango - La Magdalena Contreras advierte corte de agua en varias colonias",
+    "source_id": "003",
+    "points": [
+      {
+        "colonia": "San Jerónimo Aculco-Lídice",
+        "lat": 19.3267187,
+        "lon": -99.22256
+      },
+      {
+        "colonia": "San Francisco",
+        "lat": 19.3023536,
+        "lon": -99.2458102
+      },
+      {
+        "colonia": "La Cruz",
+        "lat": 19.3054313,
+        "lon": -99.2354964
+      },
+      {
+        "colonia": "La Concepción",
+        "lat": 19.3043519,
+        "lon": -99.2348245
+      },
+      {
+        "colonia": "Plazuela del Pedregal",
+        "lat": 19.304135,
+        "lon": -99.2325865
+      },
+      {
+        "colonia": "San Bartolo Ameyalco",
+        "lat": 19.3268119,
+        "lon": -99.2448388
+      },
+      {
+        "colonia": "Cuauhtémoc",
+        "lat": 19.3202511,
+        "lon": -99.2432805
+      },
+      {
+        "colonia": "Lomas Quebradas",
+        "lat": 19.3159494,
+        "lon": -99.2409104
+      },
+      {
+        "colonia": "Heroes de Padierna",
+        "lat": 19.3134795,
+        "lon": -99.2267836
+      },
+      {
+        "colonia": "Los Padres",
+        "lat": 19.3196456,
+        "lon": -99.2495464
+      },
+      {
+        "colonia": "El Tanque",
+        "lat": 19.3249381,
+        "lon": -99.2469899
+      },
+      {
+        "colonia": "Las Cruces",
+        "lat": 19.3198351,
+        "lon": -99.254654
+      },
+      {
+        "colonia": "San Bernabé Ocotepec",
+        "lat": 19.313799,
+        "lon": -99.2560658
+      },
+      {
+        "colonia": "Atacaxco",
+        "lat": 19.3154947,
+        "lon": -99.2516136
+      },
+      {
+        "colonia": "El Rosal",
+        "lat": 19.309682,
+        "lon": -99.2497511
+      },
+      {
+        "colonia": "Vista Hermosa",
+        "lat": 19.3144466,
+        "lon": -99.2548829
+      },
+      {
+        "colonia": "Las Palmas",
+        "lat": 19.3134059,
+        "lon": -99.2506223
+      },
+      {
+        "colonia": "Barros Sierra",
+        "lat": 19.3170353,
+        "lon": -99.2485937
+      }
+    ],
+    "lat": 19.3267187,
+    "lon": -99.22256
+  },
+  {
+    "id": "004-0",
+    "alcaldia": "Azcapotzalco",
+    "colonias": [
+      "Presidente Madero",
+      "Miguel Hidalgo",
+      "San Juan Tlihuaca",
+      "Tezozomoc"
+    ],
+    "start": null,
+    "end": "2026-06-30T23:59:59-06:00",
+    "kind": "baja_presion",
+    "reason": "Reparación de la bomba del Pozo Presidente Madero",
+    "confidence": 1.0,
+    "source_title": "Anuncian cortes de agua en CDMX hasta el 30 de junio: Colonias afectadas - Líder Empresarial",
+    "source_id": "004",
+    "points": [
+      {
+        "colonia": "Presidente Madero",
+        "lat": 19.4958756,
+        "lon": -99.2018448
+      },
+      {
+        "colonia": "Miguel Hidalgo",
+        "lat": 19.4937154,
+        "lon": -99.1988243
+      },
+      {
+        "colonia": "San Juan Tlihuaca",
+        "lat": 19.4923006,
+        "lon": -99.20495
+      },
+      {
+        "colonia": "Tezozomoc",
+        "lat": 19.4949382,
+        "lon": -99.1960298
+      }
+    ],
+    "lat": 19.4958756,
+    "lon": -99.2018448
+  },
+  {
+    "id": "004-1",
+    "alcaldia": "Tláhuac",
+    "colonias": [
+      "San Andrés Mixquic",
+      "San Nicolás Tetelco",
+      "San Juan Ixtayopan",
+      "San Pedro Tláhuac",
+      "San Francisco Tlaltenco"
+    ],
+    "start": null,
+    "end": "2026-06-26T17:00:00-06:00",
+    "kind": "baja_presion",
+    "reason": "Sustitución del equipo de bombeo del Pozo Tecomitl 20",
+    "confidence": 1.0,
+    "source_title": "Anuncian cortes de agua en CDMX hasta el 30 de junio: Colonias afectadas - Líder Empresarial",
+    "source_id": "004",
+    "points": [
+      {
+        "colonia": "San Andrés Mixquic",
+        "lat": 19.2254045,
+        "lon": -98.9642238
+      },
+      {
+        "colonia": "San Nicolás Tetelco",
+        "lat": 19.217864,
+        "lon": -98.9760954
+      },
+      {
+        "colonia": "San Juan Ixtayopan",
+        "lat": 19.2411387,
+        "lon": -98.9960494
+      },
+      {
+        "colonia": "San Pedro Tláhuac",
+        "lat": 19.2690889,
+        "lon": -99.0046823
+      },
+      {
+        "colonia": "San Francisco Tlaltenco",
+        "lat": 19.2975409,
+        "lon": -99.016226
+      }
+    ],
+    "lat": 19.2254045,
+    "lon": -98.9642238
+  },
+  {
+    "id": "006-0",
+    "alcaldia": "Álvaro Obregón",
+    "colonias": [
+      "Año de Juárez",
+      "La Planta",
+      "El Edén",
+      "Unidad Habitacional Allepetlali",
+      "Unidad Santa Cruz Meyehualco"
+    ],
+    "start": null,
+    "end": null,
+    "kind": "tandeo",
+    "reason": "Programa de agua por tandeo durante noviembre",
+    "confidence": 1.0,
+    "source_title": "Estas son las colonias de la CDMX que se quedarán sin agua durante el mes de noviembre",
+    "source_id": "006",
+    "points": [],
+    "lat": null,
+    "lon": null
+  },
+  {
+    "id": "006-1",
+    "alcaldia": "Coyoacán",
+    "colonias": [
+      "Adolfo Ruíz Cortines",
+      "Pedregal de Santa Úrsula",
+      "Pedregal de Santo Domingo",
+      "Ajusco"
+    ],
+    "start": null,
+    "end": null,
+    "kind": "tandeo",
+    "reason": "Programa de agua por tandeo durante noviembre",
+    "confidence": 1.0,
+    "source_title": "Estas son las colonias de la CDMX que se quedarán sin agua durante el mes de noviembre",
+    "source_id": "006",
+    "points": [
+      {
+        "colonia": "Adolfo Ruíz Cortines",
+        "lat": 19.3052509,
+        "lon": -99.2030859
+      },
+      {
+        "colonia": "Pedregal de Santo Domingo",
+        "lat": 19.3271575,
+        "lon": -99.1678565
+      },
+      {
+        "colonia": "Ajusco",
+        "lat": 19.3190897,
+        "lon": -99.1609606
+      }
+    ],
+    "lat": 19.3052509,
+    "lon": -99.2030859
+  },
+  {
+    "id": "006-2",
+    "alcaldia": "Gustavo A. Madero",
+    "colonias": [
+      "Ampliación Arboledas Cuautepec",
+      "Ampliación Pradera",
+      "La Casilla",
+      "La Pastora",
+      "La Providencia",
+      "Ampliación Malacates",
+      "Cuautepec Centro",
+      "Luis Donaldo Colosio M"
+    ],
+    "start": null,
+    "end": null,
+    "kind": "tandeo",
+    "reason": "Programa de agua por tandeo durante noviembre",
+    "confidence": 1.0,
+    "source_title": "Estas son las colonias de la CDMX que se quedarán sin agua durante el mes de noviembre",
+    "source_id": "006",
+    "points": [
+      {
+        "colonia": "Ampliación Arboledas Cuautepec",
+        "lat": 19.5763052,
+        "lon": -99.1308155
+      },
+      {
+        "colonia": "Ampliación Pradera",
+        "lat": 19.479849,
+        "lon": -99.0753065
+      },
+      {
+        "colonia": "La Pastora",
+        "lat": 19.5282092,
+        "lon": -99.1391164
+      },
+      {
+        "colonia": "La Providencia",
+        "lat": 19.4744936,
+        "lon": -99.1200806
+      },
+      {
+        "colonia": "Ampliación Malacates",
+        "lat": 19.5763052,
+        "lon": -99.1308155
+      },
+      {
+        "colonia": "Cuautepec Centro",
+        "lat": 19.5595246,
+        "lon": -99.1425621
+      },
+      {
+        "colonia": "Luis Donaldo Colosio M",
+        "lat": 19.5621346,
+        "lon": -99.1457052
+      }
+    ],
+    "lat": 19.5763052,
+    "lon": -99.1308155
+  },
+  {
+    "id": "006-3",
+    "alcaldia": "Tláhuac",
+    "colonias": [
+      "Ampliación José López Portillo",
+      "Selene",
+      "El Rosario",
+      "Jaime Torres Bodet",
+      "Peña Alta",
+      "Tierra Blanca",
+      "La Habana",
+      "Santa Cecilia"
+    ],
+    "start": null,
+    "end": null,
+    "kind": "tandeo",
+    "reason": "Programa de agua por tandeo durante noviembre",
+    "confidence": 1.0,
+    "source_title": "Estas son las colonias de la CDMX que se quedarán sin agua durante el mes de noviembre",
+    "source_id": "006",
+    "points": [
+      {
+        "colonia": "Ampliación José López Portillo",
+        "lat": 19.3131107,
+        "lon": -99.0271285
+      },
+      {
+        "colonia": "Selene",
+        "lat": 19.3039856,
+        "lon": -98.9999315
+      },
+      {
+        "colonia": "El Rosario",
+        "lat": 19.234988,
+        "lon": -99.0101925
+      },
+      {
+        "colonia": "Jaime Torres Bodet",
+        "lat": 19.2304267,
+        "lon": -98.9963971
+      },
+      {
+        "colonia": "Peña Alta",
+        "lat": 19.2260378,
+        "lon": -99.0071458
+      },
+      {
+        "colonia": "Tierra Blanca",
+        "lat": 19.2324998,
+        "lon": -99.0096372
+      },
+      {
+        "colonia": "La Habana",
+        "lat": 19.2527384,
+        "lon": -98.9755048
+      },
+      {
+        "colonia": "Santa Cecilia",
+        "lat": 19.2791062,
+        "lon": -99.0063474
+      }
+    ],
+    "lat": 19.3131107,
+    "lon": -99.0271285
+  },
+  {
+    "id": "008-0",
+    "alcaldia": "Azcapotzalco",
+    "colonias": [
+      "San Miguel Amantla",
+      "Plenitud"
+    ],
+    "start": null,
+    "end": "2025-12-24T23:59:59-06:00",
+    "kind": "suspension",
+    "reason": "Trabajos de rehabilitación en el pozo San Miguel Amantla",
+    "confidence": 1.0,
+    "source_title": "Corte de agua en CDMX: estas colonias se quedarán sin suministro antes de Navidad",
+    "source_id": "008",
+    "points": [
+      {
+        "colonia": "San Miguel Amantla",
+        "lat": 19.4751706,
+        "lon": -99.2047491
+      },
+      {
+        "colonia": "Plenitud",
+        "lat": 19.4735099,
+        "lon": -99.1968801
+      }
+    ],
+    "lat": 19.4751706,
+    "lon": -99.2047491
+  },
+  {
+    "id": "009-0",
+    "alcaldia": "Azcapotzalco",
+    "colonias": [
+      "Presidente Madero",
+      "Miguel Hidalgo",
+      "San Juan Tlihuaca",
+      "Tezozomoc"
+    ],
+    "start": null,
+    "end": "2026-06-30T23:59:59-06:00",
+    "kind": "baja_presion",
+    "reason": "Reparación de la bomba del Pozo Presidente Madero",
+    "confidence": 1.0,
+    "source_title": "Cortes de agua en CdMx: colonias y afectadas hasta 30 de junio- Grupo Milenio",
+    "source_id": "009",
+    "points": [
+      {
+        "colonia": "Presidente Madero",
+        "lat": 19.4958756,
+        "lon": -99.2018448
+      },
+      {
+        "colonia": "Miguel Hidalgo",
+        "lat": 19.4937154,
+        "lon": -99.1988243
+      },
+      {
+        "colonia": "San Juan Tlihuaca",
+        "lat": 19.4923006,
+        "lon": -99.20495
+      },
+      {
+        "colonia": "Tezozomoc",
+        "lat": 19.4949382,
+        "lon": -99.1960298
+      }
+    ],
+    "lat": 19.4958756,
+    "lon": -99.2018448
+  },
+  {
+    "id": "011-0",
+    "alcaldia": "Benito Juárez",
+    "colonias": [
+      "Del Valle",
+      "Narvarte",
+      "Nápoles",
+      "Mixcoac"
+    ],
+    "start": null,
+    "end": "2026-01-14T23:59:59-06:00",
+    "kind": "suspension",
+    "reason": "Reparación de una fuga en la red",
+    "confidence": 1.0,
+    "source_title": "Corte de agua en CDMX: colonias se quedan sin servicio",
+    "source_id": "011",
+    "points": [
+      {
+        "colonia": "Del Valle",
+        "lat": 19.3838913,
+        "lon": -99.1688607
+      },
+      {
+        "colonia": "Narvarte",
+        "lat": 19.391616,
+        "lon": -99.1513127
+      },
+      {
+        "colonia": "Nápoles",
+        "lat": 19.3896634,
+        "lon": -99.1738081
+      },
+      {
+        "colonia": "Mixcoac",
+        "lat": 19.3762376,
+        "lon": -99.1876125
+      }
+    ],
+    "lat": 19.3838913,
+    "lon": -99.1688607
+  }
+]

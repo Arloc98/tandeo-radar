@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-09-25",
+  "source": "set de evaluacion: avisos reales de prensa, eventos etiquetados y verificados a mano",
+  "events": 10,
+  "alcaldias": [
+    "Azcapotzalco",
+    "Benito Juárez",
+    "Coyoacán",
+    "Gustavo A. Madero",
+    "La Magdalena Contreras",
+    "Tláhuac",
+    "Álvaro Obregón"
+  ],
+  "colonias_total": 63,
+  "colonias_geocoded": 55,
+  "notices": 6
+}

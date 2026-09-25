@@ -1,6 +1,7 @@
 from pathlib import Path
 from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from .models import Announcement, AutonomyInput, AutonomyResult, TandeoEvent
 import json
 from . import collector, extractor, geo, autonomy, config
@@ -8,6 +9,10 @@ from . import collector, extractor, geo, autonomy, config
 app = FastAPI(title="Tandeo Radar", version="0.1.0")
 WEB = Path(__file__).resolve().parent.parent / "web"
 STATE: dict[str, list[TandeoEvent]] = {"events": []}
+
+# The UI reads a frozen snapshot from web/data/ so it renders without a live run.
+if (WEB / "data").is_dir():
+    app.mount("/data", StaticFiles(directory=WEB / "data"), name="snapshot")
 
 
 @app.post("/refresh")
