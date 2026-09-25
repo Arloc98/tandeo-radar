@@ -11,3 +11,6 @@ runs/
 .agents/
 .claude/
 skills-lock.json
+
+# Vercel: vinculo local del proyecto
+.vercel
