@@ -14,3 +14,7 @@ NEBIUS_MODELS = {"fast": NEBIUS_MODEL_FAST, "reasoning": NEBIUS_MODEL_REASONING}
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 OFFLINE = os.getenv("OFFLINE", "true").lower() == "true"
 SEARCH_TIME_RANGE = os.getenv("SEARCH_TIME_RANGE", "week")
+# Techo absoluto de creditos Tavily del mes. 0 lo desactiva, que es lo correcto en
+# local. En un despliegue publico cualquiera puede pulsar "Actualizar en vivo", y una
+# corrida cuesta 3 creditos: un techo de N permite (N - gasto actual) / 3 corridas.
+TAVILY_USAGE_CEILING = int(os.getenv("TAVILY_USAGE_CEILING", "0") or 0)

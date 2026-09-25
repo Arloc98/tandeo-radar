@@ -4,6 +4,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+import httpx
 from .models import Announcement
 from . import config
 from .extractor import OFFICIAL_ALCALDIAS
@@ -32,6 +33,44 @@ _WINDOW_DAYS = {
     "month": 30,
     "year": 365,
 }
+
+
+class BudgetExhausted(Exception):
+    """The demo budget is spent. Not an error: a deliberate stop before spending more."""
+
+    def __init__(self, used: int, ceiling: int):
+        self.used, self.ceiling = used, ceiling
+        super().__init__(f"Tavily usage {used} reached the demo ceiling {ceiling}")
+
+
+def plan_usage() -> int:
+    """Credits consumed this month, from Tavily's own meter.
+
+    The endpoint is undocumented but stable, and reading it costs no credits. Raises
+    on failure so the caller can refuse to spend rather than guess.
+    """
+    r = httpx.get(
+        "https://api.tavily.com/usage",
+        headers={"Authorization": f"Bearer {config.TAVILY_API_KEY}"},
+        timeout=10,
+    )
+    r.raise_for_status()
+    return int(r.json()["account"]["plan_usage"])
+
+
+def check_budget() -> None:
+    """Stop before a public demo drains the plan. A ceiling of 0 disables the guard."""
+    ceiling = config.TAVILY_USAGE_CEILING
+    if ceiling <= 0:
+        return
+    try:
+        used = plan_usage()
+    except Exception as ex:
+        # Si el medidor no responde, no se gasta: en una demo publica fallar
+        # abierto es justo el modo de fallo que el techo existe para evitar.
+        raise BudgetExhausted(-1, ceiling) from ex
+    if used >= ceiling:
+        raise BudgetExhausted(used, ceiling)
 
 
 # Tavily no ancla geografia: `language="es"` cubre todo el espanol, asi que una

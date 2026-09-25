@@ -31,6 +31,17 @@ def refresh(geocode: bool = True) -> dict:
         STATE["events"] = [TandeoEvent(**e) for e in raw]
         return {"events": len(STATE["events"]), "errors": [], "mode": "fixtures",
                 "items": [e.model_dump(mode="json") for e in STATE["events"]]}
+    # El techo se comprueba antes de gastar: en un despliegue publico cualquiera
+    # puede disparar la corrida, y una corrida cuesta creditos reales.
+    try:
+        collector.check_budget()
+    except collector.BudgetExhausted as ex:
+        return {
+            "events": 0, "errors": [], "items": [],
+            "budget_exhausted": True,
+            "budget_used": ex.used,
+            "budget_ceiling": ex.ceiling,
+        }
     announcements: list[Announcement] = []
     try:
         collected = collector.collect()

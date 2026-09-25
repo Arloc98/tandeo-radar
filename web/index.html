@@ -615,6 +615,7 @@
     }).then(function (spec) {
       if (spec && spec.paths && spec.paths["/refresh"]) {
         document.getElementById("livebar").hidden = false;
+        aplicarFreno();
       }
     }).catch(function () { /* sin backend: el boton se queda oculto */ });
   }
@@ -636,6 +637,24 @@
     }).then(function (body) {
       var secs = ((Date.now() - t0) / 1000).toFixed(0);
       var items = body.items || [];
+
+      // El backend rechazo la corrida para no gastar mas creditos de la demo.
+      if (body.budget_exhausted) {
+        err.hidden = false;
+        err.textContent = body.budget_used >= 0
+          ? "Presupuesto de la demo agotado (" + body.budget_used + " de " +
+            body.budget_ceiling + " créditos). El snapshot sigue disponible."
+          : "No se pudo leer el medidor de Tavily, así que no se ejecutó nada. " +
+            "El snapshot sigue disponible.";
+        note.textContent = "La corrida en vivo está acotada por presupuesto.";
+        btn.disabled = true;
+        return;
+      }
+
+      // Freno por cliente: una corrida por sesion. Es friccion honesta, no seguridad
+      // -- una ventana privada lo salta; el techo de creditos es lo que de verdad acota.
+      try { sessionStorage.setItem("tr-live-usado", "1"); } catch (e) {}
+      aplicarFreno();
 
       if (!items.length) {
         note.textContent = "La corrida terminó en " + secs + " s sin eventos utilizables. " +
@@ -690,6 +709,16 @@
         "Tavily → Nemotron → GeoJSON ahora mismo.";
       btn.disabled = false;
     });
+  }
+
+  function aplicarFreno() {
+    var usado = false;
+    try { usado = sessionStorage.getItem("tr-live-usado") === "1"; } catch (e) {}
+    if (!usado) { return; }
+    var btn = document.getElementById("live");
+    btn.disabled = true;
+    btn.textContent = "Corrida ya ejecutada";
+    btn.title = "Una corrida en vivo por sesión. Recarga en una pestaña nueva para otra.";
   }
 
   document.getElementById("live").addEventListener("click", liveRefresh);
