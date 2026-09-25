@@ -4,9 +4,11 @@ An AI agent that turns scattered water-outage announcements in Mexico City into 
 structured data (JSON / GeoJSON), and tells each household how many days its cistern will
 last against the next announced cut.
 
-**Live demo: [tandeo-radar.vercel.app](https://tandeo-radar.vercel.app)** — a frozen
-snapshot of the pipeline's output, so the page loads instantly and costs nothing to browse.
-It carries real notices with hand-verified labels; see *Measuring the extractor* below.
+**Live demo: [tandeo-radar.vercel.app](https://tandeo-radar.vercel.app)** — it opens on a
+frozen snapshot, so the page loads instantly and costs nothing to browse, and the
+**Actualizar en vivo** button runs the real pipeline against Tavily and Nemotron on demand,
+reporting what it did: duration, escalations to the reasoning tier, collector discards. The
+snapshot carries real notices with hand-verified labels; see *Measuring the extractor*.
 
 ## The problem
 
@@ -75,8 +77,33 @@ instead of live search.
 
 The dashboard reads a frozen snapshot from `web/data/` rather than triggering `/refresh`
 on load: a live run costs Tavily credits per visit and leaves the page at the mercy of the
-provider's intermittency. `web/` deploys as a static site on its own — the autonomy maths
-is mirrored client-side, so the page needs no backend.
+provider's intermittency. The autonomy maths is mirrored client-side, so the page renders
+with no backend at all — and the **Actualizar en vivo** button runs the real pipeline on
+demand when one is present.
+
+## Deployment
+
+The deployed demo is one Vercel project serving both halves:
+
+- **Static** — `web/` is the output directory, so `index.html` and the snapshot under
+  `web/data/` are served straight from the filesystem.
+- **Serverless** — `api/index.py` re-exports the ASGI app, and `vercel.json` routes
+  anything with no matching static file to it. FastAPI receives the original path, so the
+  routes below work unprefixed. A live run takes ~6 s against a 60 s `maxDuration`.
+
+The page decides for itself whether to offer the live button: it probes `openapi.json`,
+which FastAPI publishes and a purely static deployment does not have. With no backend the
+button never appears, so the snapshot still works when deployed alone.
+
+Two things the serverless environment forces, both already handled: `/refresh` returns the
+events in its own body, because a follow-up `GET /events` can land on a different instance
+and read empty state; and geocoding keeps its cache in memory, because the filesystem is
+read-only.
+
+**Public deployments should set `TAVILY_USAGE_CEILING`.** Anyone who can open the page can
+press the button, and a run costs real credits. The guard reads Tavily's own meter before
+spending and refuses once the ceiling is reached; `0` disables it, which is what you want
+locally. The per-session limit in the UI is honest friction, not security.
 
 ## API
 
