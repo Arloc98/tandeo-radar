@@ -106,8 +106,16 @@ def test_mixed_batch_keeps_only_the_usable_result(en_linea):
 
 
 def test_text_at_exactly_the_minimum_is_kept(en_linea):
-    """'Not reaching' the minimum means < MIN_CONTENT_CHARS, not <=."""
-    en_linea([_resultado("https://x.test/justo", "corte " * 200)])
+    """'Not reaching' the minimum means < MIN_CONTENT_CHARS, not <=.
+
+    The filler names the city because the collector is CDMX-only and drops notices from
+    other states; a text that named nowhere would be rejected for geography, not length,
+    and this test would stop measuring the boundary it exists to measure.
+    """
+    justo = ("corte de agua en la CDMX. " * 60)[:collector.MIN_CONTENT_CHARS]
+    assert len(justo) == collector.MIN_CONTENT_CHARS
+
+    en_linea([_resultado("https://x.test/justo", justo)])
     announcements, discarded = collector.collect()
 
     assert len(announcements) == 1, "a text of exactly MIN_CONTENT_CHARS reaches the minimum"

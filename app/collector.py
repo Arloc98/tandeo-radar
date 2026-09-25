@@ -6,6 +6,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from .models import Announcement
 from . import config
+from .extractor import OFFICIAL_ALCALDIAS
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,34 @@ _WINDOW_DAYS = {
     "month": 30,
     "year": 365,
 }
+
+
+# Tavily no ancla geografia: `language="es"` cubre todo el espanol, asi que una
+# busqueda de cortes devuelve Nuevo Leon, Yucatan y Chiapas. Medido el 25 sep 2026,
+# dos corridas, 2 de 8 resultados fuera de la CDMX. El filtro lo hace el codigo.
+_CDMX_MARKERS = tuple(OFFICIAL_ALCALDIAS.keys()) + (
+    "cdmx", "ciudad de mexico", "ciudad de méxico", "sacmex", "segiagua",
+    "valle de méxico", "valle de mexico",
+)
+
+
+def _is_cdmx(text: str) -> bool:
+    """True when the text names the city, its water utility or one of its alcaldias."""
+    low = text.lower()
+    return any(marker in low for marker in _CDMX_MARKERS)
+
+
+# Creditos consumidos por la ultima llamada a collect(). Tavily los devuelve por
+# peticion cuando se pide include_usage; sin esto el gasto es invisible.
+LAST_USAGE = {"credits": 0, "calls": 0}
+
+
+def _record_usage(res: dict) -> None:
+    usage = res.get("usage") or {}
+    credits = usage.get("credits")
+    LAST_USAGE["calls"] += 1
+    if isinstance(credits, (int, float)):
+        LAST_USAGE["credits"] += credits
 
 
 def _parse_published(value: str | None) -> datetime | None:
@@ -97,6 +126,8 @@ def collect(max_results: int = 5, time_range: str | None = None) -> tuple[list[A
     cutoff = datetime.now(timezone.utc) - timedelta(days=_WINDOW_DAYS.get(window, 7))
 
     tv = _tavily_client()
+    LAST_USAGE["credits"] = 0      # el gasto se cuenta por corrida, no acumulado
+    LAST_USAGE["calls"] = 0
     seen, out = set(), []
     discarded = 0
     undated = 0
@@ -108,7 +139,14 @@ def collect(max_results: int = 5, time_range: str | None = None) -> tuple[list[A
             max_results=max_results,
             include_raw_content=True,
             time_range=window,
+            # Sin anclaje de idioma, buscar cortes en una alcaldia devolvia notas de
+            # Nuevo Leon, Texas y vuelos en Australia. Medido el 25 sep 2026.
+            language="es",
+            filter_by_language=True,
+            # Devuelve {"credits": N} por llamada: es la unica forma de saber el gasto.
+            include_usage=True,
         )
+        _record_usage(res)
         for r in res.get("results", []):
             if r["url"] in seen:
                 continue
@@ -127,6 +165,10 @@ def collect(max_results: int = 5, time_range: str | None = None) -> tuple[list[A
                     "discarded result of %d chars, below MIN_CONTENT_CHARS=%d: %s",
                     len(content), MIN_CONTENT_CHARS, r["url"],
                 )
+                continue
+            if not _is_cdmx(content):
+                discarded += 1
+                logger.info("discarded result outside Mexico City: %s", r["url"])
                 continue
             published = r.get("published_date")
             parsed = _parse_published(published)
