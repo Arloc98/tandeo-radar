@@ -4,6 +4,10 @@ An AI agent that turns scattered water-outage announcements in Mexico City into 
 structured data (JSON / GeoJSON), and tells each household how many days its cistern will
 last against the next announced cut.
 
+**Live demo: [tandeo-radar.vercel.app](https://tandeo-radar.vercel.app)** — a frozen
+snapshot of the pipeline's output, so the page loads instantly and costs nothing to browse.
+It carries real notices with hand-verified labels; see *Measuring the extractor* below.
+
 ## The problem
 
 *Tandeo* — intermittent water supply — is how a large part of Mexico City gets its water.
@@ -68,6 +72,11 @@ pytest -q
 Without `NEBIUS_API_KEY` the app serves synthetic fixtures, so the UI can be developed
 offline. With `OFFLINE=true` it runs the LLM over synthetic announcements from `data/`
 instead of live search.
+
+The dashboard reads a frozen snapshot from `web/data/` rather than triggering `/refresh`
+on load: a live run costs Tavily credits per visit and leaves the page at the mercy of the
+provider's intermittency. `web/` deploys as a static site on its own — the autonomy maths
+is mirrored client-side, so the page needs no backend.
 
 ## API
 
