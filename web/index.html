@@ -654,7 +654,6 @@
       // Freno por cliente: una corrida por sesion. Es friccion honesta, no seguridad
       // -- una ventana privada lo salta; el techo de creditos es lo que de verdad acota.
       try { sessionStorage.setItem("tr-live-usado", "1"); } catch (e) {}
-      aplicarFreno();
 
       if (!items.length) {
         note.textContent = "La corrida terminó en " + secs + " s sin eventos utilizables. " +
@@ -665,6 +664,7 @@
             " error(es); no es un día sin cortes, es una falla de recolección.";
         }
         btn.disabled = false;
+        aplicarFreno();
         return;
       }
 
@@ -701,6 +701,7 @@
           "la geocodificación necesita nombres de colonia concretos. La lista sí los muestra.";
       }
       btn.disabled = false;
+      aplicarFreno();
     }).catch(function (e) {
       err.hidden = false;
       err.textContent = "El refresco en vivo falló (" + e.message +

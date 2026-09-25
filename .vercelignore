@@ -1,0 +1,9 @@
+.venv/
+tests/
+docs/
+data/eval/
+runs/
+.pytest_cache/
+.ruff_cache/
+.agents/
+.claude/
