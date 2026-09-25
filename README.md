@@ -102,7 +102,7 @@ kind) plus the rows the extractor discarded, per file and in total. A recall of 
 many discarded rows is a different diagnosis from a recall of zero with none: the first
 means the model returned garbage, the second means it got the colonia wrong.
 
-Measured results, with the caveats that matter, are in `docs/EVALUATION.md`: alcaldía
+Measured results, with the caveats that matter, are in `docs/PITCH-COMPLEMENTO.md`: alcaldía
 30/30, colonias 188/189 and the right restoration **day** 15/15 over three runs — against a
 real weakness, the model invents a start date in 70% of the notices that never state one.
 
@@ -110,10 +110,11 @@ See `data/eval/README.md` for the labelling rules and the provenance of the set.
 
 ## How it was built
 
-`docs/PROCESO.md` documents the method, the tooling and — mostly — what went wrong: a model that
-failed silently, `temperature=0` that turned out not to be deterministic, a diagnosis that had to
-be retracted, an acceptance test that let through the very bug it existed to catch, and three
-bugs that were invisible in the code and obvious on the first click.
+`docs/PITCH-COMPLEMENTO.md` is the single companion document: the measured numbers, the method,
+the tooling, and — mostly — what went wrong. A model that failed silently, `temperature=0` that
+turned out not to be deterministic, a diagnosis that had to be retracted, an acceptance test that
+let through the very bug it existed to catch, and three bugs that were invisible in the code and
+obvious on the first click. It also states plainly what is still broken.
 
 ## What this does not do yet
 
