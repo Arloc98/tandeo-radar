@@ -102,6 +102,10 @@ kind) plus the rows the extractor discarded, per file and in total. A recall of 
 many discarded rows is a different diagnosis from a recall of zero with none: the first
 means the model returned garbage, the second means it got the colonia wrong.
 
+Measured results, with the caveats that matter, are in `docs/EVALUATION.md`: alcaldía
+30/30, colonias 188/189 and the right restoration **day** 15/15 over three runs — against a
+real weakness, the model invents a start date in 70% of the notices that never state one.
+
 See `data/eval/README.md` for the labelling rules and the provenance of the set.
 
 ## What this does not do yet
