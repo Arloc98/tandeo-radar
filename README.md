@@ -108,6 +108,13 @@ real weakness, the model invents a start date in 70% of the notices that never s
 
 See `data/eval/README.md` for the labelling rules and the provenance of the set.
 
+## How it was built
+
+`docs/PROCESO.md` documents the method, the tooling and — mostly — what went wrong: a model that
+failed silently, `temperature=0` that turned out not to be deterministic, a diagnosis that had to
+be retracted, an acceptance test that let through the very bug it existed to catch, and three
+bugs that were invisible in the code and obvious on the first click.
+
 ## What this does not do yet
 
 Stated plainly, because a demo that hides its edges is not useful:
