@@ -7,7 +7,6 @@ to escalate -- retrying with the same model that just failed buys little.
 """
 from __future__ import annotations
 
-import pytest
 
 from app import extractor, llm
 from app.models import Announcement

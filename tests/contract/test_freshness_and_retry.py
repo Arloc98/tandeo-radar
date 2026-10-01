@@ -11,11 +11,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
-from types import SimpleNamespace
 
 import pytest
 
-from app import collector, config, extractor, llm
+from app import collector, extractor, llm
 from app.models import Announcement
 
 # La ventana de frescura se mide contra el reloj, asi que una fecha fija caduca.

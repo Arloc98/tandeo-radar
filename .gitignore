@@ -33,3 +33,6 @@ skills-lock.json
 /scripts/gate.py
 /scripts/hooks/
 /data/eval/_REVISAR.md
+
+# Contratos de tareas abiertas: rojos a proposito, fuera de testpaths.
+/tests/_pending/

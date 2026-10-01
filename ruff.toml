@@ -1,0 +1,6 @@
+# Un chequeo que siempre falla entrena a ignorar el gate, y gate.py corre `ruff check`
+# como parte de su veredicto. Los tres E402 que quedaban son deliberados: los scripts
+# sueltos de scripts/ insertan la raiz del repo en sys.path antes de importar `app`,
+# porque se corren como `python scripts/x.py` y no como modulo.
+[lint.per-file-ignores]
+"scripts/*.py" = ["E402"]
