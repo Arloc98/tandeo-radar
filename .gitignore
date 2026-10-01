@@ -14,3 +14,22 @@ skills-lock.json
 
 # Vercel: vinculo local del proyecto
 .vercel
+
+# --- Orquestacion privada: vive en este arbol, nunca se publica ---
+# Desde el 30 de septiembre de 2026 hay un solo arbol de trabajo. La maquinaria
+# del constructor y los docs internos conviven aqui con el producto, y lo unico
+# que los separa es esta lista. Antes de cada commit: git status debe estar limpio
+# de estas rutas.
+/CLAUDE.md
+/AGENTS.md
+/.commandcode/
+/tasks/
+/reviews/
+/docs/AJUSTES-PENDIENTES.md
+/docs/WORKFLOW.md
+/docs/NEBIUS.md
+/docs/TAVILY.md
+/scripts/dispatch.sh
+/scripts/gate.py
+/scripts/hooks/
+/data/eval/_REVISAR.md
