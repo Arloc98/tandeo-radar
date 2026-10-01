@@ -9,7 +9,8 @@ client stands in for Tavily.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 
 import pytest
 
@@ -26,8 +27,15 @@ TEXTO_COMPLETO = (
 )
 TITULAR = "Corte de agua en CDMX: estas son las colonias afectadas este jueves"
 
+# La ventana de frescura se mide contra el reloj, asi que una fecha fija caduca.
+# Estas pruebas pasaron hasta el 1 oct 2026 y empezaron a fallar solas en cuanto el
+# 24 sep quedo fuera de la ventana de una semana, sin que cambiara una linea de
+# codigo. La fecha se calcula al correr para que la prueba siga midiendo la
+# frescura y no el calendario.
+RECIENTE = format_datetime(datetime.now(timezone.utc) - timedelta(days=1))
 
-def _resultado(url: str, raw: str | None, content: str = TITULAR, published: str | None = "Thu, 24 Sep 2026 00:00:00 GMT") -> dict:
+
+def _resultado(url: str, raw: str | None, content: str = TITULAR, published: str | None = RECIENTE) -> dict:
     return {
         "url": url,
         "title": "aviso",

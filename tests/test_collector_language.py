@@ -9,9 +9,20 @@ and a demo that anyone can trigger needs its spend to be measurable.
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
+
 import pytest
 
 from app import collector, config
+
+
+# La ventana de frescura se mide contra el reloj, asi que una fecha fija caduca.
+# Estas pruebas pasaron hasta el 1 oct 2026 y empezaron a fallar solas en cuanto el
+# 24 sep quedo fuera de la ventana de una semana, sin que cambiara una linea de
+# codigo. La fecha se calcula al correr para que la prueba siga midiendo la
+# frescura y no el calendario.
+RECIENTE = format_datetime(datetime.now(timezone.utc) - timedelta(days=1))
 
 
 TEXTO = ("La Secretaria de Gestion Integral del Agua informa que habra suspension del "
@@ -33,7 +44,7 @@ class _Espia:
                 "title": "aviso",
                 "content": "titular",
                 "raw_content": TEXTO,
-                "published_date": "Thu, 24 Sep 2026 00:00:00 GMT",
+                "published_date": RECIENTE,
             }]
         }
         if self._usage is not None:
@@ -109,7 +120,7 @@ def test_a_notice_from_another_state_is_discarded(en_linea, monkeypatch):
     espia.search = lambda query, **kw: {"results": [{
         "url": "https://posta.com.mx/nuevo-leon/corte-en-san-pedro",
         "title": "corte", "content": "titular", "raw_content": FUERA_DE_CDMX,
-        "published_date": "Thu, 24 Sep 2026 00:00:00 GMT",
+        "published_date": RECIENTE,
     }]}
     monkeypatch.setattr(collector, "_tavily_client", lambda: espia)
 

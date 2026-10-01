@@ -9,12 +9,23 @@ Tested through what the caller sees, never a helper.
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 from types import SimpleNamespace
 
 import pytest
 
 from app import collector, config, extractor, llm
 from app.models import Announcement
+
+# La ventana de frescura se mide contra el reloj, asi que una fecha fija caduca.
+# Estas pruebas pasaron hasta el 1 oct 2026 y empezaron a fallar solas en cuanto el
+# 24 sep quedo fuera de la ventana de una semana, sin que cambiara una linea de
+# codigo. La fecha se calcula al correr para que la prueba siga midiendo la
+# frescura y no el calendario.
+RECIENTE = format_datetime(datetime.now(timezone.utc) - timedelta(days=1))
+# Nueve meses atras: lo que la prueba llama "una nota de diciembre".
+VIEJO = format_datetime(datetime.now(timezone.utc) - timedelta(days=280))
 
 TEXTO_LARGO = (
     "La Secretaría de Gestión Integral del Agua informa que habrá suspensión del servicio en "
@@ -58,7 +69,7 @@ def en_linea(monkeypatch):
 # --- frescura -------------------------------------------------------------------------
 
 def test_the_time_window_is_sent_to_tavily(en_linea):
-    stub = en_linea([_resultado("https://x.test/1", "Thu, 24 Sep 2026 00:00:00 GMT")])
+    stub = en_linea([_resultado("https://x.test/1", RECIENTE)])
     collector.collect()
     assert stub.llamadas, "no search was issued"
     assert stub.llamadas[0].get("time_range") == collector.SEARCH_TIME_RANGE
@@ -69,10 +80,10 @@ def test_the_window_defaults_to_a_week():
 
 
 def test_a_notice_older_than_the_window_is_not_returned(en_linea):
-    """A cut announced in December 2025 is not news in September 2026."""
+    """A cut announced nine months ago is not news today."""
     en_linea([
-        _resultado("https://x.test/viejo", "Mon, 22 Dec 2025 00:00:00 GMT"),
-        _resultado("https://x.test/fresco", "Thu, 24 Sep 2026 00:00:00 GMT"),
+        _resultado("https://x.test/viejo", VIEJO),
+        _resultado("https://x.test/fresco", RECIENTE),
     ])
     avisos, _ = collector.collect()
     assert [a.url for a in avisos] == ["https://x.test/fresco"]

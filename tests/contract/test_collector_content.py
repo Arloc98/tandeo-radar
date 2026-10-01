@@ -9,9 +9,20 @@ Never touches the network: a stub client stands in for Tavily.
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
+
 import pytest
 
 from app import collector, config
+
+
+# La ventana de frescura se mide contra el reloj, asi que una fecha fija caduca.
+# Estas pruebas pasaron hasta el 1 oct 2026 y empezaron a fallar solas en cuanto el
+# 24 sep quedo fuera de la ventana de una semana, sin que cambiara una linea de
+# codigo. La fecha se calcula al correr para que la prueba siga midiendo la
+# frescura y no el calendario.
+RECIENTE = format_datetime(datetime.now(timezone.utc) - timedelta(days=1))
 
 TEXTO_COMPLETO = (
     "La Secretaría de Gestión Integral del Agua informa que habrá suspensión del servicio "
@@ -23,7 +34,7 @@ SNIPPET = "Corte de agua en CDMX: estas son las colonias afectadas este jueves"
 
 def _resultado(url, raw, content=SNIPPET):
     return {"url": url, "title": "aviso", "content": content,
-            "raw_content": raw, "published_date": "Thu, 24 Sep 2026 00:00:00 GMT"}
+            "raw_content": raw, "published_date": RECIENTE}
 
 
 class _TavilyStub:
